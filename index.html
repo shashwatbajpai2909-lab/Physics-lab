@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b1020">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Physics Lab X">
+<title>Physics Lab X</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#070b16;--panel:#10182b;--panel2:#0d1424;--text:#eef3ff;--muted:#8e9ab5;--accent:#67d4ff;--accent2:#8d7cff;--line:#24304a;--good:#58e6a8}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Inter,Arial,sans-serif}body{min-height:100vh}button,input,select{font:inherit}button{color:inherit}.app{max-width:1100px;margin:auto;padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom)}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 12px;position:sticky;top:0;background:linear-gradient(var(--bg) 75%,transparent);z-index:5}.brand{display:flex;gap:11px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#6be2ff,#806cff);display:grid;place-items:center;box-shadow:0 8px 30px #4d8cff33}.logo span{font-weight:900;font-size:20px}.title{font-weight:800;font-size:20px}.sub{font-size:11px;color:var(--muted);margin-top:2px}.pill{border:1px solid var(--line);background:var(--panel);padding:8px 11px;border-radius:99px;font-size:12px;color:var(--muted)}
+.hero{padding:10px 2px 16px}.hero h1{font-size:30px;line-height:1.05;margin:5px 0 8px}.hero p{color:var(--muted);margin:0;line-height:1.45}
+.tabs{display:flex;gap:8px;overflow:auto;padding:5px 0 13px;scrollbar-width:none}.tabs button{white-space:nowrap;border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:10px 13px;color:var(--muted)}.tabs button.active{background:#17233d;color:var(--text);border-color:#3a5077}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:12px}.card{background:linear-gradient(180deg,#111a2d,#0d1423);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 10px 35px #0004}.card h2,.card h3{margin:0 0 12px}.controls{display:grid;gap:13px}.control label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}.value{color:var(--accent);font-variant-numeric:tabular-nums}.control input[type=range]{width:100%;accent-color:#69d9ff}.row{display:flex;gap:8px}.row>*{flex:1}.btn{border:1px solid #33435f;background:#18233a;border-radius:12px;padding:11px 12px;font-weight:700}.btn.primary{background:linear-gradient(135deg,#247ca0,#5b4fc4);border:0}.btn:active{transform:scale(.98)}
+canvas{display:block;width:100%;height:auto;border-radius:13px;background:#070b14;border:1px solid #1d2940;touch-action:none}.readouts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.metric{background:#0a1120;border:1px solid #1b2840;border-radius:12px;padding:9px}.metric small{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;margin-top:4px;font-size:16px}.equation{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0a1020;border:1px solid #1d2940;border-radius:12px;padding:11px;font-size:12px;overflow:auto;color:#cbd7f5}.list{display:grid;gap:8px}.exp{padding:12px;border:1px solid var(--line);border-radius:13px;background:#0b1220;cursor:pointer}.exp b{display:block}.exp span{font-size:12px;color:var(--muted)}.hidden{display:none}.footer{color:#687692;text-align:center;font-size:11px;padding:20px 0}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.controls-card{order:2}.visual-card{order:1}.readouts{grid-template-columns:repeat(3,1fr)}.hero h1{font-size:27px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand"><div class="logo"><span>Φ</span></div><div><div class="title">Physics Lab X</div><div class="sub">Interactive physics laboratory</div></div></div><div class="pill" id="status">READY</div></header>
+<section class="hero"><h1>Explore. Change. Measure.</h1><p>Real-time simulations with physical equations, visual experiments and measurable outputs.</p></section>
+<nav class="tabs" id="tabs"></nav>
+<main class="grid">
+<section class="card controls-card"><h2 id="expTitle">Projectile Motion</h2><div class="controls" id="controls"></div><div class="row" style="margin-top:14px"><button class="btn primary" id="play">▶ Start</button><button class="btn" id="reset">↺ Reset</button></div><div style="height:12px"></div><div class="equation" id="equation"></div></section>
+<section class="card visual-card"><canvas id="canvas" width="900" height="520"></canvas><div class="readouts" id="readouts"></div></section>
+</main>
+<section class="card" style="margin-top:12px"><h3>Experiment library</h3><div class="list" id="library"></div></section>
+<div class="footer">Physics Lab X • Educational simulator • Built for touch screens</div>
+</div>
+<script>
+const experiments={
+ projectile:{name:'Projectile Motion',desc:'Trajectory, range, flight time and peak height',params:[['v0','Initial speed',5,60,0.5,'m/s'],['angle','Launch angle',5,85,1,'°'],['g','Gravity',1,20,.1,'m/s²']],eq:'x=v₀t cosθ   y=v₀t sinθ − ½gt²',init:()=>({t:0,done:false})},
+ pendulum:{name:'Simple Pendulum',desc:'Angular motion and energy exchange',params:[['L','Length',.3,4,.1,'m'],['theta','Initial angle',5,45,1,'°'],['g','Gravity',1,20,.1,'m/s²']],eq:'T≈2π√(L/g)   θ¨+(g/L)sinθ=0',init:()=>({t:0})},
+ spring:{name:'Mass–Spring Oscillator',desc:'SHM, velocity and energy',params:[['m','Mass',.1,5,.1,'kg'],['k','Spring constant',1,100,1,'N/m'],['A','Amplitude',.05,1,.01,'m']],eq:'x=A cos(ωt),   ω=√(k/m)',init:()=>({t:0})},
+ circuit:{name:'Ohm’s Law Circuit',desc:'Voltage, resistance and current',params:[['V','Voltage',1,24,.5,'V'],['R','Resistance',1,100,.5,'Ω']],eq:'V=IR   I=V/R   P=VI',init:()=>({t:0})},
+ magnetic:{name:'Electromagnet',desc:'Coil field strength explorer',params:[['N','Turns',10,1000,10,'turns'],['I','Current',.1,10,.1,'A'],['r','Coil radius',.02,.2,.005,'m']],eq:'B≈μ₀NI/(2r)   μ₀=4π×10⁻⁷ T·m/A',init:()=>({t:0})}
+};
+let current='projectile',running=false,last=performance.now(),state={};const canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);function fmt(x,n=2){return Number(x).toFixed(n)}
+function makeTabs(){const tabs=$('tabs');tabs.innerHTML='';Object.entries(experiments).forEach(([id,e])=>{const b=document.createElement('button');b.textContent=e.name;b.onclick=()=>select(id);if(id===current)b.classList.add('active');tabs.appendChild(b)})}
+function select(id){current=id;running=false;state=experiments[id].init();$('status').textContent='READY';$('play').textContent='▶ Start';renderControls();makeTabs();draw();}
+function renderControls(){const e=experiments[current], c=$('controls');$('expTitle').textContent=e.name;$('equation').textContent=e.eq;c.innerHTML='';e.params.forEach(p=>{const [key,label,min,max,step,unit]=p;const d=document.createElement('div');d.className='control';d.innerHTML=`<label><span>${label}</span><span class="value" id="v_${key}"></span></label><input id="i_${key}" type="range" min="${min}" max="${max}" step="${step}">`;c.appendChild(d);const input=d.querySelector('input');input.value=(min+max)/2;input.oninput=()=>{state.t=0;updateValues();draw()}});updateValues()}
+function val(k){return +$('i_'+k).value}function updateValues(){experiments[current].params.forEach(p=>{const [k,,min,max,step,u]=p;$('v_'+k).textContent=fmt(val(k),String(step).includes('.')?2:0)+' '+u})}
+function drawGrid(){ctx.fillStyle='#070b14';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#142039';ctx.lineWidth=1;for(let x=0;x<canvas.width;x+=45){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke()}for(let y=0;y<canvas.height;y+=45){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke()}}
+function projectile(){const v=val('v0'),a=val('angle')*Math.PI/180,g=val('g'),T=2*v*Math.sin(a)/g,R=v*v*Math.sin(2*a)/g,H=v*v*Math.sin(a)**2/(2*g);const t=Math.min(state.t,T),x=v*Math.cos(a)*t,y=v*Math.sin(a)*t-.5*g*t*t;const scale=Math.min(70,760/R);const ox=65,oy=450;ctx.strokeStyle='#263651';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+R*scale,oy);ctx.stroke();ctx.strokeStyle='#67d4ff';ctx.lineWidth=4;ctx.beginPath();for(let i=0;i<=80;i++){let tt=T*i/80,xx=v*Math.cos(a)*tt,yy=v*Math.sin(a)*tt-.5*g*tt*tt;let px=ox+xx*scale,py=oy-yy*scale;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}ctx.stroke();ctx.fillStyle='#8d7cff';ctx.beginPath();ctx.arc(ox+x*scale,oy-y*scale,9,0,Math.PI*2);ctx.fill();metrics([['Time',fmt(t)+' s'],['Range',fmt(R)+' m'],['Peak',fmt(H)+' m']])}
+function pendulum(){const L=val('L'),g=val('g'),a0=val('theta')*Math.PI/180;const w=Math.sqrt(g/L),a=a0*Math.cos(w*state.t),cx=450,cy=100,len=220;const x=cx+Math.sin(a)*len,y=cy+Math.cos(a)*len;ctx.strokeStyle='#9aa8c5';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(x,y);ctx.stroke();ctx.fillStyle='#67d4ff';ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.fill();ctx.fillStyle='#8d7cff';ctx.beginPath();ctx.arc(cx,cy,7,0,Math.PI*2);ctx.fill();metrics([['Angle',fmt(a*180/Math.PI)+'°'],['ω',fmt(w)+' rad/s'],['Period',fmt(2*Math.PI/w)+' s']])}
+function spring(){const m=val('m'),k=val('k'),A=val('A'),w=Math.sqrt(k/m),x=A*Math.cos(w*state.t),v=-A*w*Math.sin(w*state.t);const left=170,cy=270,scale=150;ctx.strokeStyle='#7e8aa4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(70,cy);ctx.lineTo(left-35,cy);ctx.stroke();let sx=left-35,ex=left+x*scale;ctx.strokeStyle='#67d4ff';ctx.lineWidth=4;ctx.beginPath();for(let i=0;i<=24;i++){let px=sx+(ex-sx)*i/24,py=cy+Math.sin(i*Math.PI*6)*18;ctx.lineTo(px,py)}ctx.stroke();ctx.fillStyle='#8d7cff';ctx.fillRect(ex,cy-42,70,84);metrics([['x',fmt(x)+' m'],['v',fmt(v)+' m/s'],['Energy',fmt(.5*k*A*A)+' J']])}
+function circuit(){const V=val('V'),R=val('R'),I=V/R,P=V*I;const y=260,x0=160,x1=700;ctx.strokeStyle='#71809b';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(270,y);ctx.lineTo(300,220);ctx.lineTo(350,300);ctx.lineTo(400,220);ctx.lineTo(450,300);ctx.lineTo(480,y);ctx.lineTo(x1,y);ctx.lineTo(x1,140);ctx.lineTo(x0,140);ctx.lineTo(x0,y);ctx.stroke();ctx.strokeStyle='#67d4ff';ctx.lineWidth=4;ctx.beginPath();ctx.arc(450,200,55,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#eef3ff';ctx.font='bold 22px system-ui';ctx.fillText(`${fmt(V)} V`,425,208);ctx.fillText(`${fmt(R)} Ω`,350,350);metrics([['Current',fmt(I,3)+' A'],['Power',fmt(P,2)+' W'],['Charge rate',fmt(I,3)+' C/s']])}
+function magnetic(){const N=val('N'),I=val('I'),r=val('r'),mu=4*Math.PI*1e-7,B=mu*N*I/(2*r);const cx=450,cy=260,R=120;ctx.strokeStyle='#67d4ff';ctx.lineWidth=12;ctx.beginPath();ctx.ellipse(cx,cy,R,55,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='#8d7cff';ctx.lineWidth=3;for(let i=-4;i<=4;i++){ctx.beginPath();ctx.moveTo(cx+i*25,cy-105);ctx.quadraticCurveTo(cx+i*25+(i%2?20:-20),cy-170,cx+i*25,cy-210);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+i*25,cy+105);ctx.quadraticCurveTo(cx+i*25+(i%2?20:-20),cy+170,cx+i*25,cy+210);ctx.stroke()}ctx.fillStyle='#eef3ff';ctx.font='bold 20px system-ui';ctx.fillText('Coil',425,265);metrics([['Field B',B.toExponential(3)+' T'],['Turns',N],['Current',fmt(I)+' A']])}
+function metrics(items){$('readouts').innerHTML=items.map(x=>`<div class="metric"><small>${x[0]}</small><strong>${x[1]}</strong></div>`).join('')}
+function draw(){drawGrid();({projectile,pendulum,spring,circuit,magnetic}[current])();}
+function tick(now){const dt=Math.min(.04,(now-last)/1000);last=now;if(running){state.t+=dt;if(current==='projectile'){const v=val('v0'),a=val('angle')*Math.PI/180,T=2*v*Math.sin(a)/val('g');if(state.t>=T){state.t=T;running=false;$('play').textContent='▶ Start';$('status').textContent='COMPLETE'}}draw()}requestAnimationFrame(tick)}
+$('play').onclick=()=>{running=!running;$('play').textContent=running?'❚❚ Pause':'▶ Start';$('status').textContent=running?'RUNNING':'PAUSED'};$('reset').onclick=()=>{state=experiments[current].init();running=false;$('play').textContent='▶ Start';$('status').textContent='READY';draw()};
+$('library').innerHTML=Object.entries(experiments).map(([id,e])=>`<div class="exp" data-id="${id}"><b>${e.name}</b><span>${e.desc}</span></div>`).join('');$('library').querySelectorAll('.exp').forEach(x=>x.onclick=()=>select(x.dataset.id));
+makeTabs();renderControls();draw();requestAnimationFrame(tick);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body></html>
